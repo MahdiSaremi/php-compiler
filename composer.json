@@ -1,0 +1,17 @@
+{
+    "name": "ub/compiler",
+    "autoload": {
+        "psr-4": {
+            "Comp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Mahdi Saremi",
+            "email": "mahdisarmi00@gmail.com"
+        }
+    ],
+    "require": {
+        "ramsey/uuid": "^4.7"
+    }
+}
