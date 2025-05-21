@@ -107,10 +107,6 @@ class Grammar
                 foreach ($pattern->pat as $index => $item) {
                     if ($item === $for) {
 
-                        var_dump("Yes for " . array_search($for, $this->nonTerminals) . ' -> production ' . array_search($production->nonTerminal, $this->nonTerminals) . ' -> ' .
-                            $index
-                        );
-
                         $ok = false;
                         while (++$index < count($pattern->pat)) {
                             $front = $pattern->pat[$index];
@@ -155,5 +151,44 @@ class Grammar
         }
 
         return null;
+    }
+
+    public function nameOf(Terminal|NonTerminal $term): ?string
+    {
+        $result = array_search($term, $term instanceof Terminal ? $this->terminals : $this->nonTerminals);
+        return $result === false ? null : $result;
+    }
+
+    /**
+     * @param (Terminal|NonTerminal)[] $sequence
+     * @return FirstOrFollows
+     */
+    public function firstOfSequence(array $sequence): FirstOrFollows
+    {
+        $first = [];
+        $lastLambda = true;
+
+        foreach ($sequence as $x) {
+            $lastLambda = false;
+
+            if ($x instanceof Terminal) {
+                $first[] = $x;
+                break;
+            }
+
+            if ($x instanceof NonTerminal) {
+                $xFirst = $this->firsts["$x"];
+
+                array_push($first, ...$xFirst->all);
+
+                if (!$xFirst->lambda) {
+                    break;
+                }
+
+                $lastLambda = true;
+            }
+        }
+
+        return new FirstOrFollows($first, $lastLambda);
     }
 }
