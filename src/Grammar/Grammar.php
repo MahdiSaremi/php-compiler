@@ -30,7 +30,7 @@ class Grammar
          * @var Terminal[]
          */
         public array $terminals,
-        array        $productions,
+        array|string $productions,
     )
     {
         $map = [];
@@ -43,16 +43,40 @@ class Grammar
             $map["$terminal"] = $terminal;
         }
 
+        if (is_string($productions)) {
+            $code = explode("\n", $productions);
+            $code = array_map('trim', $code);
+            $code = array_filter($code, fn($x) => $x !== '');
+
+            $productions = [];
+            foreach ($code as $line) {
+                @[$left, $right] = explode('=>', $line, 2);
+
+                if ($right === null) {
+                    throw new \Exception("Missing '=>'");
+                }
+
+                $left = rtrim($left);
+
+                $productions[$left] ??= [];
+                array_push($productions[$left], ...explode('|', $right));
+            }
+        }
+
         $this->productions = [];
 
-        foreach ($productions as $nonTerminal => $production) {
-            $nonTerminal = @$map[$nonTerminal];
+        foreach ($productions as $tag => $production) {
+            $nonTerminal = @$map[$tag];
 
-            assert($nonTerminal instanceof NonTerminal);
+            if (!($nonTerminal instanceof NonTerminal)) {
+                throw new \Exception("No non-terminal with tag '$tag' found.");
+            }
 
             if (is_string($production)) {
                 $production = explode('|', $production);
             }
+
+            $production = array_unique(array_map('trim', $production));
 
             $patterns = array_map(function (string $string) use (&$map) {
                 return new Pattern(
@@ -179,7 +203,7 @@ class Grammar
             if ($x instanceof NonTerminal) {
                 $xFirst = $this->firsts["$x"];
 
-                array_push($first, ...$xFirst->all);
+                $first = array_unique(array_merge($first, $xFirst->all));
 
                 if (!$xFirst->lambda) {
                     break;

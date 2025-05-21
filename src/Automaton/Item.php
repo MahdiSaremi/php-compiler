@@ -70,6 +70,11 @@ class Item
             $this->pattern === $other->pattern;
     }
 
+    public function mergeLAs(Item $other): Item
+    {
+        return new Item($this->left, $this->pattern, $this->index, array_unique(array_merge($this->lookaheads, $other->lookaheads)));
+    }
+
     public function makeNext(array $lookaheads): Item
     {
         return new Item($this->left, $this->pattern, $this->index + 1, $lookaheads);

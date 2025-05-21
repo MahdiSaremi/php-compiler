@@ -44,26 +44,22 @@ class Automaton
             if ($head->pointToNonTerminal()) {
                 $left = $head->point();
 
-                if ($left === $head->left) {
-                    continue;
-                }
+                $aheadFirst = $this->grammar->firstOfSequence(
+                    array_slice($head->pattern->pat, $head->index + 1),
+                );
+
+                $lookaheads = array_unique(array_merge($aheadFirst->all, $aheadFirst->lambda ? $head->lookaheads : []));
 
                 foreach ($this->grammar->getProductionFor($left)->patterns as $pattern) {
-                    $b = $head->nextPoint();
-                    if ($b instanceof NonTerminal) {
-                        $bFirst = $this->grammar->firsts["$b"];
-                        $lookaheads = $bFirst->all;
+                    $newItem = new Item($left, $pattern, 0, $lookaheads);
 
-                        if ($bFirst->lambda) {
-                            $lookaheads = array_unique(array_merge($lookaheads, $head->lookaheads));
+                    foreach ($state->items as $item) {
+                        if ($item->equalsTo($newItem)) {
+                            continue 3;
                         }
-                    } elseif ($b instanceof Terminal) {
-                        $lookaheads = array_unique(array_merge([$b], $head->lookaheads));
-                    } else {
-                        $lookaheads = $head->lookaheads;
                     }
 
-                    $queue[] = new Item($left, $pattern, 0, $lookaheads);
+                    $queue[] = $newItem;
                 }
             }
         }
@@ -91,7 +87,7 @@ class Automaton
                     array_slice($item->pattern->pat, $item->index + 1),
                 );
 
-                $lookaheads = array_merge($aheadFirst->all, $aheadFirst->lambda ? $item->lookaheads : []);
+                $lookaheads = array_unique(array_merge($aheadFirst->all, $aheadFirst->lambda ? $item->lookaheads : []));
 
                 $goto->offsetSet($point, [
                     ...$goto->offsetGet($point),
@@ -159,6 +155,7 @@ class Automaton
 
             for ($j = $i + 1; $j < count($items); $j++) {
                 if ($item->equalsWithoutLATo($items[$j])) {
+                    $mergedItems[$i] = $mergedItems[$i]->mergeLAs($mergedItems[$j]);
                     unset($mergedItems[$j]);
                 }
             }

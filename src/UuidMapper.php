@@ -14,6 +14,12 @@ class UuidMapper
 
     public static function extract(string $string, array $map): array
     {
+        $string = trim($string);
+
+        if (strlen($string) == 4 && strtolower($string) === 'null') {
+            return [];
+        }
+
         $result = [];
 
         foreach (explode('<<<#', $string) as $index => $part) {
@@ -22,12 +28,28 @@ class UuidMapper
 
         for ($i = 1; $i < count($result); $i += 2) {
             $item = @$map[static::uuidToTag($result[$i])];
-            assert($item instanceof NonTerminal || $item instanceof Terminal);
+
+            if (!($item instanceof NonTerminal || $item instanceof Terminal)) {
+                throw new \Exception("Undefined terminal/non-terminal with uuid '{$result[$i]}'");
+            }
+
             $result[$i] = $item;
         }
 
-        return array_values(array_filter($result, function (string $x) {
-            return $x !== '';
+        $result = array_map(function ($item) {
+            return is_string($item) ? trim($item) : $item;
+        }, $result);
+
+        return array_values(array_filter($result, function ($x) {
+            if (is_string($x)) {
+                if ($x === '') {
+                    return false;
+                }
+
+                throw new \Exception("Unknown '$x'");
+            }
+
+            return true;
         }));
     }
 }

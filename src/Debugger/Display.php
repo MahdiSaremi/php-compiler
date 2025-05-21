@@ -75,9 +75,9 @@ class Display
             echo "\n\n\n";
             printf("\t- State #%s\n", $i);
             foreach ($state->core->items as $item) {
-                printf("\t\t%s , %s\n",
+                printf("\t\t%s  >  %s\n",
                     static::production($automaton, $item->left, $item->pattern, $item->index),
-                    implode(', ', array_map(function (Terminal $term) use ($automaton) {
+                    implode(' , ', array_map(function (Terminal $term) use ($automaton) {
                         if ($term instanceof EndTerminal) {
                             return '$';
                         }
@@ -90,9 +90,9 @@ class Display
             echo "\t\t------------------------\n";
 
             foreach ($state->items as $item) {
-                printf("\t\t%s , %s\n",
+                printf("\t\t%s  >  %s\n",
                     static::production($automaton, $item->left, $item->pattern, $item->index),
-                    implode(', ', array_map(function (Terminal $term) use ($automaton) {
+                    implode(' , ', array_map(function (Terminal $term) use ($automaton) {
                         if ($term instanceof EndTerminal) {
                             return '$';
                         }

@@ -44,16 +44,19 @@ $F = new \Comp\Grammar\NonTerminal();
 $grammar = new \Comp\Grammar\Grammar(
     compact('E', 'T', 'F'),
     compact('id', 'mul', 'pls', 'parOpen', 'parClose'),
-    [
-        "$E" => "$E$pls$T|$T",
-        "$T" => "$T$mul$F|$F",
-        "$F" => "$parOpen$E$parClose|$id",
-    ],
+    <<<GRAMMAR
+        $E => $E $pls $T
+        $E => $T
+        $T => $T $mul $F
+        $T => $F
+        $F => $parOpen $E $parClose
+        $F => $id
+    GRAMMAR,
 );
 
 
-//\Comp\Debugger\Display::grammar($grammar);
+\Comp\Debugger\Display::grammar($grammar);
 
-$automaton = new \Comp\Automaton\Automaton($grammar);
-
-\Comp\Debugger\Display::automaton($automaton);
+//$automaton = new \Comp\Automaton\Automaton($grammar);
+//
+//\Comp\Debugger\Display::automaton($automaton);
