@@ -75,8 +75,8 @@ class Item
         return new Item($this->left, $this->pattern, $this->index, array_unique(array_merge($this->lookaheads, $other->lookaheads)));
     }
 
-    public function makeNext(array $lookaheads): Item
+    public function makeNext(): Item
     {
-        return new Item($this->left, $this->pattern, $this->index + 1, $lookaheads);
+        return new Item($this->left, $this->pattern, $this->index + 1, $this->lookaheads);
     }
 }

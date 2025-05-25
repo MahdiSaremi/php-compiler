@@ -64,6 +64,8 @@ class Automaton
             }
         }
 
+        $state->items = $this->mergeSameCores($state->items);
+
         $goto = new \WeakMap();
         foreach ($state->items as $item) {
             if ($item->isFinished()) {
@@ -83,15 +85,9 @@ class Automaton
                     $goto->offsetSet($point, []);
                 }
 
-                $aheadFirst = $this->grammar->firstOfSequence(
-                    array_slice($item->pattern->pat, $item->index + 1),
-                );
-
-                $lookaheads = array_unique(array_merge($aheadFirst->all, $aheadFirst->lambda ? $item->lookaheads : []));
-
                 $goto->offsetSet($point, [
                     ...$goto->offsetGet($point),
-                    $item->makeNext($lookaheads),
+                    $item->makeNext(),
                 ]);
             }
         }

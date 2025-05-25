@@ -55,8 +55,20 @@ $grammar = new \Comp\Grammar\Grammar(
 );
 
 
-\Comp\Debugger\Display::grammar($grammar);
+//\Comp\Debugger\Display::grammar($grammar);
 
-//$automaton = new \Comp\Automaton\Automaton($grammar);
-//
+$automaton = new \Comp\Automaton\Automaton($grammar);
+
 //\Comp\Debugger\Display::automaton($automaton);
+
+$parser = new \Comp\Parser\Parser($automaton);
+
+var_dump($parser->parse(new \Comp\Lexer\TokenCollection([
+    new \Comp\Lexer\Token($id, 'x'),
+    new \Comp\Lexer\Token($pls, '+'),
+    new \Comp\Lexer\Token($parOpen, '('),
+    new \Comp\Lexer\Token($id, 'i'),
+    new \Comp\Lexer\Token($mul, '*'),
+    new \Comp\Lexer\Token($id, 'j'),
+    new \Comp\Lexer\Token($parClose, ')'),
+])));
