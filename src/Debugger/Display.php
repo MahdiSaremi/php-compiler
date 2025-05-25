@@ -11,6 +11,9 @@ use Comp\Grammar\Grammar;
 use Comp\Grammar\NonTerminal;
 use Comp\Grammar\Pattern;
 use Comp\Grammar\Terminal;
+use Comp\Lexer\Token;
+use Comp\Parser\AbstractTree;
+use Comp\Parser\Node;
 
 class Display
 {
@@ -75,9 +78,9 @@ class Display
             echo "\n\n\n";
             printf("\t- State #%s\n", $i);
             foreach ($state->core->items as $item) {
-                printf("\t\t%s  >  %s\n",
+                printf("\t\t%s  ,  %s\n",
                     static::production($automaton, $item->left, $item->pattern, $item->index),
-                    implode(' , ', array_map(function (Terminal $term) use ($automaton) {
+                    implode(' | ', array_map(function (Terminal $term) use ($automaton) {
                         if ($term instanceof EndTerminal) {
                             return '$';
                         }
@@ -90,9 +93,9 @@ class Display
             echo "\t\t------------------------\n";
 
             foreach ($state->items as $item) {
-                printf("\t\t%s  >  %s\n",
+                printf("\t\t%s  ,  %s\n",
                     static::production($automaton, $item->left, $item->pattern, $item->index),
-                    implode(' , ', array_map(function (Terminal $term) use ($automaton) {
+                    implode(' | ', array_map(function (Terminal $term) use ($automaton) {
                         if ($term instanceof EndTerminal) {
                             return '$';
                         }
@@ -130,6 +133,49 @@ class Display
         }
     }
 
+    public static function abstractTree(
+        Automaton    $automaton,
+        AbstractTree $tree,
+    )
+    {
+        $stack = [
+            [0, $tree->head],
+        ];
+
+        while ($stack) {
+            /** @var Node $node */
+            [$tabs, $node] = array_pop($stack);
+
+            $tabsString = $tabs ? str_repeat("|\t", $tabs) : '';
+
+            if ($node->key instanceof NonTerminal) {
+                printf("%s- %s\n",
+                    $tabsString,
+                    static::fullName($automaton->grammar, $node->key),
+                );
+
+                printf("%s- \t# Pattern: %s\n",
+                    $tabsString,
+                    static::production($automaton, $node->key, $node->pattern),
+                );
+
+                foreach ($node->nodes as $child) {
+                    $stack[] = [$tabs + 1, $child];
+                }
+            } elseif ($node->key instanceof Token) {
+                printf("%s- %s\n",
+                    $tabsString,
+                    static::fullName($automaton->grammar, $node->key->type),
+                );
+
+                printf("%s- \t# Value: %s\n",
+                    $tabsString,
+                    $node->key->value,
+                );
+            }
+        }
+    }
+
 
     protected static function production(Grammar|Automaton $base, NonTerminal $left, Pattern $pattern, ?int $index = null): string
     {
@@ -144,14 +190,14 @@ class Display
         $str .= ' =>';
 
         if (isset($index) && $index == 0) {
-            $str .= ' .';
+            $str .= ' *';
         }
 
         foreach ($pattern->pat as $i => $term) {
             $str .= ' ' . static::fullName($grammar, $term);
 
             if (isset($index) && $index == $i + 1) {
-                $str .= ' .';
+                $str .= ' *';
             }
         }
 

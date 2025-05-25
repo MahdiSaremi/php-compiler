@@ -23,12 +23,14 @@ $grammar = new \Comp\Grammar\Grammar(
 
 $automaton = new \Comp\Automaton\Automaton($grammar);
 
-\Comp\Debugger\Display::automaton($automaton);
+//\Comp\Debugger\Display::automaton($automaton);
 
 $parser = new \Comp\Parser\Parser($automaton);
 
-var_dump($parser->parse(new \Comp\Lexer\TokenCollection([
+$abstractTree = $parser->parse(new \Comp\Lexer\TokenCollection([
     new \Comp\Lexer\Token($id, 'x'),
     new \Comp\Lexer\Token($pls, '+'),
     new \Comp\Lexer\Token($id, 'i'),
-])));
+]));
+
+\Comp\Debugger\Display::abstractTree($automaton, $abstractTree);
