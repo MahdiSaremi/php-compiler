@@ -79,9 +79,7 @@ class Grammar
             $production = array_unique(array_map('trim', $production));
 
             $patterns = array_map(function (string $string) use (&$map) {
-                return new Pattern(
-                    UuidMapper::extract($string, $map),
-                );
+                return UuidMapper::extractPattern($string, $map);
             }, $production);
 
             $this->productions[] = new Production($nonTerminal, $patterns);

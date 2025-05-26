@@ -205,6 +205,10 @@ class Display
             $str .= ' null';
         }
 
+        if (isset($pattern->tag)) {
+            $str .= ' (#' . $pattern->tag . ')';
+        }
+
         return $str;
     }
 

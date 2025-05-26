@@ -3,27 +3,38 @@
 namespace Comp;
 
 use Comp\Grammar\NonTerminal;
+use Comp\Grammar\Pattern;
 use Comp\Grammar\Terminal;
 
 class UuidMapper
 {
     public static function uuidToTag(string $uuid): string
     {
-        return "<<<#{$uuid}#>>>";
+        return "<<<&{$uuid}&>>>";
     }
 
-    public static function extract(string $string, array $map): array
+    public static function extractPattern(string $string, array $map): Pattern
     {
+        @[$string, $tag] = explode('#', $string, 2);
+
+        if (isset($tag)) {
+            $tag = trim($tag);
+
+            if ($tag === '') {
+                $tag = null;
+            }
+        }
+
         $string = trim($string);
 
         if (strlen($string) == 4 && strtolower($string) === 'null') {
-            return [];
+            return new Pattern([], $tag);
         }
 
         $result = [];
 
-        foreach (explode('<<<#', $string) as $index => $part) {
-            array_push($result, ...$index == 0 ? [$part] : explode('#>>>', $part, 2));
+        foreach (explode('<<<&', $string) as $index => $part) {
+            array_push($result, ...$index == 0 ? [$part] : explode('&>>>', $part, 2));
         }
 
         for ($i = 1; $i < count($result); $i += 2) {
@@ -40,16 +51,19 @@ class UuidMapper
             return is_string($item) ? trim($item) : $item;
         }, $result);
 
-        return array_values(array_filter($result, function ($x) {
-            if (is_string($x)) {
-                if ($x === '') {
-                    return false;
+        return new Pattern(
+            array_values(array_filter($result, function ($x) {
+                if (is_string($x)) {
+                    if ($x === '') {
+                        return false;
+                    }
+
+                    throw new \Exception("Unknown '$x'");
                 }
 
-                throw new \Exception("Unknown '$x'");
-            }
-
-            return true;
-        }));
+                return true;
+            })),
+            $tag,
+        );
     }
 }

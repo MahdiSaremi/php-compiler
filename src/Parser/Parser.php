@@ -49,7 +49,7 @@ class Parser
                             $reduceCount = count($operation->usingPattern->pat);
                             array_splice($stack, -$reduceCount * 2);
 
-                            $reduceNodes = array_splice($nodes, -$reduceCount);
+                            $reduceNodes = array_reverse(array_splice($nodes, -$reduceCount));
                             $nodes[] = new Node($operation->reduceTo, $operation->usingPattern, $reduceNodes);
 
                             /** @var State $prevState */

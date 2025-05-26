@@ -10,7 +10,8 @@ class Pattern
         /**
          * @var (string|NonTerminal|Terminal)[]
          */
-        public array $pat,
+        public array   $pat,
+        public ?string $tag = null,
     )
     {
         $this->produceLambda = empty($this->pat);
