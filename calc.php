@@ -38,23 +38,31 @@ $automaton = new \Comp\Automaton\Automaton($grammar);
 
 $parser = new \Comp\Parser\Parser($automaton);
 
+$source = new \Comp\Lexer\Source("foo.bar");
+
 // (10 + 2) * 20 + 1 * 10
 //    12    * 20 + 1 * 10
 //         240   +  10
 //              250
-$tree = $parser->parse(new \Comp\Lexer\TokenCollection([
-    new \Comp\Lexer\Token($parOpen, '('),
-    new \Comp\Lexer\Token($num, '10'),
-    new \Comp\Lexer\Token($plus, '+'),
-    new \Comp\Lexer\Token($num, '2'),
-    new \Comp\Lexer\Token($parClose, ')'),
-    new \Comp\Lexer\Token($mult, '*'),
-    new \Comp\Lexer\Token($num, '20'),
-    new \Comp\Lexer\Token($plus, '+'),
-    new \Comp\Lexer\Token($num, '1'),
-    new \Comp\Lexer\Token($mult, '*'),
-    new \Comp\Lexer\Token($num, '10'),
+$tree = $parser->parse($source, new \Comp\Lexer\TokenCollection([
+    new \Comp\Lexer\Token($parOpen, '(', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($num, '10', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($plus, '+', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($num, '2', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($parClose, ')', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($mult, '*', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($num, '20', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($plus, '+', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($num, '1', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($mult, '*', $source, 0, 0, 1),
+    new \Comp\Lexer\Token($num, '10', $source, 0, 0, 1),
 ]));
+
+if ($tree === false) {
+    print_r($parser->errors);
+
+    return;
+}
 
 \Comp\Debugger\Display::abstractTree($automaton, $tree);
 
