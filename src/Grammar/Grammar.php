@@ -49,6 +49,7 @@ class Grammar
 
         $productions = [];
         $precedence = [];
+        $start = null;
         foreach ($code as $line) {
             if (preg_match('/^(left|right)[\s\n\r]/', $line, $matches)) {
                 $line = substr($line, strlen($matches[0]));
@@ -74,6 +75,8 @@ class Grammar
                         }
                     }
                 }
+            } elseif (preg_match('/^(start)[\s\n\r]/', $line, $matches)) {
+                $start = $map[trim(substr($line, strlen($matches[0])))];
             } else {
                 @[$left, $right] = explode('=>', $line, 2);
 
@@ -88,20 +91,21 @@ class Grammar
             }
         }
 
-        return new self($nonTerminals, $terminals, $productions, $precedence);
+        return new self($nonTerminals, $terminals, $productions, $start, $precedence);
     }
 
     public function __construct(
         /**
          * @var NonTerminal[]
          */
-        public array $nonTerminals,
+        public array        $nonTerminals,
         /**
          * @var Terminal[]
          */
-        public array $terminals,
-        array        $productions,
-        public array $precedence,
+        public array        $terminals,
+        array               $productions,
+        public ?NonTerminal $start,
+        public array        $precedence,
     )
     {
         $map = [];
@@ -135,6 +139,8 @@ class Grammar
 
             $this->productions[] = new Production($nonTerminal, $patterns);
         }
+
+        $this->start ??= reset($this->productions)->nonTerminal;
 
         foreach ($this->nonTerminals as $nonTerminal) {
             $first = [];
@@ -171,7 +177,7 @@ class Grammar
     {
         $sees[] = $for;
 
-        if ($for === reset($this->productions)->nonTerminal && !in_array(EndTerminal::instance(), $follow)) {
+        if ($for === $this->start && !in_array(EndTerminal::instance(), $follow)) {
             $follow[] = EndTerminal::instance();
         }
 

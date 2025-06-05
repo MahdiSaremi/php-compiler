@@ -66,6 +66,21 @@ class Display
                 $follow->lambda ? ', nullable' : '',
             );
         }
+
+        echo "\n";
+
+        echo "  -  Precedence:\n";
+        foreach ([...$grammar->nonTerminals, ...$grammar->terminals] as $from) {
+            foreach ([...$grammar->nonTerminals, ...$grammar->terminals] as $to) {
+                if (isset($grammar->precedence["$from"]["$to"])) {
+                    printf("\t%s %s %s\n",
+                        $grammar->nameOf($from),
+                        $grammar->precedence["$from"]["$to"] ? "<" : ">",
+                        $grammar->nameOf($to),
+                    );
+                }
+            }
+        }
     }
 
     public static function automaton(

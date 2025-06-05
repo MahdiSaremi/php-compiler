@@ -26,7 +26,7 @@ class Automaton
         $end = EndTerminal::instance();
 
         $state = new State(new Core([
-            new Item($start, new Pattern([$this->grammar->productions[0]->nonTerminal]), 0, [$end]),
+            new Item($start, new Pattern([$this->grammar->start]), 0, [$end]),
         ]));
 
         $this->buildState($state);

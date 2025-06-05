@@ -31,8 +31,12 @@ class AbstractTree
             return $this->travelCallbacks[$key]($node);
         } elseif (isset($this->travelCallbacks[$key = $node->key . '#' . $node->pattern->tag])) {
             return $this->travelCallbacks[$key]($node);
-        } else {
+        } elseif (isset($this->travelCallbacks[(string)$node->key])) {
             return $this->travelCallbacks[(string)$node->key]($node);
+        } elseif (count($node->nodes) == 1) {
+            return $this->travelThe($node->nodes[0]);
+        } else {
+            throw new \RuntimeException("Travel for " . $node->key . " not supported");
         }
     }
 }
