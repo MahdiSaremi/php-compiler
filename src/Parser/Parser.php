@@ -91,18 +91,16 @@ class Parser
                         $prevState = end($stack);
                         $stack[] = $operation->reduceTo;
 
-                        foreach ($prevState->operations as $operation2) {
-                            if ($operation2 instanceof Shift && $operation2->see === $operation->reduceTo) {
-                                $stack[] = $operation2->newState;
-                                continue 3;
-                            }
-                            if ($operation2 instanceof ShiftOrReduce && $operation2->see === $operation->reduceTo) {
-                                $stack[] = $operation2->shift->newState;
-                                continue 3;
-                            }
+                        $operation2 = $prevState->operationMap[(string)$operation->reduceTo];
+                        if ($operation2 instanceof Shift) {
+                            $stack[] = $operation2->newState;
+                        } elseif ($operation2 instanceof ShiftOrReduce) {
+                            $stack[] = $operation2->shift->newState;
+                        } else {
+                            throw new \RuntimeException("Unexpected error! Shift for state is not found");
                         }
 
-                        break 2;
+                        continue 2;
 
                     case $operation instanceof Accept:
                         if ($this->errors) {

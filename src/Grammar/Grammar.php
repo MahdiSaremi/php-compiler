@@ -45,7 +45,7 @@ class Grammar
             return (string)$mapAs[$matches[1]]; // todo escapes
         }, $syntax);
 
-        $code = preg_split('/[\s\n\r]*;[\s\n\r]+/', trim($syntax), flags: PREG_SPLIT_NO_EMPTY);
+        $code = preg_split('/[\s\n\r]*;[\s\n\r]*/', trim($syntax), flags: PREG_SPLIT_NO_EMPTY);
 
         $productions = [];
         $precedence = [];
