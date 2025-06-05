@@ -21,35 +21,60 @@ class Grammar
      */
     public array $follows;
 
-    public function __construct(
-        /**
-         * @var NonTerminal[]
-         */
-        public array $nonTerminals,
-        /**
-         * @var Terminal[]
-         */
-        public array $terminals,
-        array|string $productions,
-    )
+    public static function makeFromString(
+        array  $nonTerminals,
+        array  $terminals,
+        string $syntax,
+    ): self
     {
         $map = [];
+        $mapAs = [];
 
-        foreach ($this->nonTerminals as $nonTerminal) {
+        foreach ($nonTerminals as $nonTerminal) {
             $map["$nonTerminal"] = $nonTerminal;
         }
 
-        foreach ($this->terminals as $terminal) {
+        foreach ($terminals as $terminal) {
             $map["$terminal"] = $terminal;
+            if (isset($terminal->as)) {
+                $mapAs[$terminal->as] = $terminal;
+            }
         }
 
-        if (is_string($productions)) {
-            $code = explode("\n", $productions);
-            $code = array_map('trim', $code);
-            $code = array_filter($code, fn($x) => $x !== '');
+        $syntax = preg_replace_callback('/\'(([^\'\\\\]*((\\\\)+|\\\w|\\\\\'|))*)\'/', function ($matches) use ($mapAs) {
+            return (string)$mapAs[$matches[1]]; // todo escapes
+        }, $syntax);
 
-            $productions = [];
-            foreach ($code as $line) {
+        $code = preg_split('/[\s\n\r]*;[\s\n\r]+/', trim($syntax), flags: PREG_SPLIT_NO_EMPTY);
+
+        $productions = [];
+        $precedence = [];
+        foreach ($code as $line) {
+            if (preg_match('/^(left|right)[\s\n\r]/', $line, $matches)) {
+                $line = substr($line, strlen($matches[0]));
+                $isLeft = $matches[1] == 'left';
+
+                preg_match_all('/(.+?)([=<]|$)/', $line, $matches);
+
+                $all = [[]];
+                foreach (array_keys($matches[1]) as $i) {
+                    $all[count($all) - 1][] = $map[trim($matches[1][$i])];
+
+                    if ($matches[2][$i] == '<') {
+                        $all[] = [];
+                    }
+                }
+
+                foreach ($all as $i => $equals) {
+                    foreach ($equals as $select) {
+                        foreach ($all as $j => $withs) {
+                            foreach ($withs as $with) {
+                                @$precedence["$select"]["$with"] = $i == $j ? !$isLeft : $i < $j;
+                            }
+                        }
+                    }
+                }
+            } else {
                 @[$left, $right] = explode('=>', $line, 2);
 
                 if ($right === null) {
@@ -61,6 +86,32 @@ class Grammar
                 $productions[$left] ??= [];
                 array_push($productions[$left], ...explode('|', $right));
             }
+        }
+
+        return new self($nonTerminals, $terminals, $productions, $precedence);
+    }
+
+    public function __construct(
+        /**
+         * @var NonTerminal[]
+         */
+        public array $nonTerminals,
+        /**
+         * @var Terminal[]
+         */
+        public array $terminals,
+        array        $productions,
+        public array $precedence,
+    )
+    {
+        $map = [];
+
+        foreach ($this->nonTerminals as $nonTerminal) {
+            $map["$nonTerminal"] = $nonTerminal;
+        }
+
+        foreach ($this->terminals as $terminal) {
+            $map["$terminal"] = $terminal;
         }
 
         $this->productions = [];

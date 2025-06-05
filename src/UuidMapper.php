@@ -8,9 +8,12 @@ use Comp\Grammar\Terminal;
 
 class UuidMapper
 {
+    public const PREFIX = '!!!&';
+    public const SUFFIX = '&!!!';
+
     public static function uuidToTag(string $uuid): string
     {
-        return "<<<&{$uuid}&>>>";
+        return self::PREFIX . $uuid . self::SUFFIX;
     }
 
     public static function extractPattern(string $string, array $map): Pattern
@@ -33,8 +36,8 @@ class UuidMapper
 
         $result = [];
 
-        foreach (explode('<<<&', $string) as $index => $part) {
-            array_push($result, ...$index == 0 ? [$part] : explode('&>>>', $part, 2));
+        foreach (explode(self::PREFIX, $string) as $index => $part) {
+            array_push($result, ...$index == 0 ? [$part] : explode(self::SUFFIX, $part, 2));
         }
 
         for ($i = 1; $i < count($result); $i += 2) {

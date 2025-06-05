@@ -6,6 +6,7 @@ use Comp\Automaton\Accept;
 use Comp\Automaton\Automaton;
 use Comp\Automaton\Reduce;
 use Comp\Automaton\Shift;
+use Comp\Automaton\ShiftOrReduce;
 use Comp\Grammar\EndTerminal;
 use Comp\Grammar\Grammar;
 use Comp\Grammar\NonTerminal;
@@ -107,7 +108,7 @@ class Display
 
             printf("\t- Operation\n");
 
-            foreach ($state->operations as $operation) {
+            foreach ($state->operationMap as $operation) {
                 printf("\t\t%s -> ",
                     static::fullName($automaton->grammar, $operation->see),
                 );
@@ -122,6 +123,13 @@ class Display
                     case $operation instanceof Reduce:
                         printf("Reduce by %s\n",
                             static::production($automaton, $operation->reduceTo, $operation->usingPattern),
+                        );
+                        break;
+
+                    case $operation instanceof ShiftOrReduce:
+                        printf("Shift to #%s | Reduce by %s\n",
+                            array_search($operation->shift->newState, $automaton->states),
+                            static::production($automaton, $operation->reduce->reduceTo, $operation->reduce->usingPattern),
                         );
                         break;
 

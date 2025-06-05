@@ -100,6 +100,8 @@ class Automaton
             $toState = $this->findOrBuildState($this->mergeSameCores($items));
             $state->operations[] = new Shift($point, $toState);
         }
+
+        $state->calculateMap();
     }
 
     /**

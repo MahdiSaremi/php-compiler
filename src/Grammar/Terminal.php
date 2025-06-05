@@ -9,7 +9,7 @@ class Terminal
 {
     protected string $uuid;
 
-    public function __construct()
+    public function __construct(public ?string $as = null)
     {
         $this->uuid = Uuid::uuid4()->toString();
     }
